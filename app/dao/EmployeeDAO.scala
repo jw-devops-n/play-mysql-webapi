@@ -26,6 +26,12 @@ trait EmployeeComponent {
 
     def openid = column[Option[String]]("OPENID")
 
+    def role = column[Option[String]]("ROLE")
+
+    def email = column[Option[String]]("EMAIL")
+
+    def department = column[Option[String]]("DEPARTMENT")
+
     def emptel = column[Option[String]]("EMPTEL")
 
     def creator = column[Option[Int]]("CREATOR")
@@ -37,12 +43,12 @@ trait EmployeeComponent {
     def updatetime = column[Option[DateTime]]("UPDATETIME")
 
 
-    def * = (empno, username, password, empname, openid, emptel, creator, createtime, updater, updatetime).shaped <>
+    def * = (empno, username, password, empname, openid, role, email, department, emptel, creator, createtime, updater, updatetime).shaped <>
       ( {
-        case (empno, username, password, empname, openid, emptel, creator, createtime, updater, updatetime) =>
-          Employee(empno, username, password, empname, openid, emptel, creator, createtime, updater, updatetime)
+        case (empno, username, password, empname, openid, role, email, department, emptel, creator, createtime, updater, updatetime) =>
+          Employee(empno, username, password, empname, openid, role, email, department, emptel, creator, createtime, updater, updatetime)
       }, { e: Employee =>
-        Some((e.EmpNo, e.UserName, e.PassWord, e.EmpName, e.Openid, e.EmpTel, e.Creator, e.CreateTime, e.Updater, e.UpdateTime))
+        Some((e.EmpNo, e.UserName, e.PassWord, e.EmpName, e.Openid, e.Role, e.Email, e.Department, e.EmpTel, e.Creator, e.CreateTime, e.Updater, e.UpdateTime))
       })
   }
 
@@ -67,13 +73,13 @@ class EmployeeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
       employees.filter(e => e.empno === 1).result
     ) map (
       _.headOption match {
-          case None =>
-            db.run(
-              employees += Employee(EmpNo = 1, UserName = "admin", PassWord = parseToMD5("123456"), EmpName = Some("Admin"))
-            )
-          case Some(_)=>
-            Future(0)
-        }
+        case None =>
+          db.run(
+            employees += Employee(EmpNo = 1, UserName = "admin", PassWord = parseToMD5("123456"), EmpName = Some("Admin"))
+          )
+        case Some(_) =>
+          Future(0)
+      }
       )
   }
 
