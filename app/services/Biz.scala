@@ -17,7 +17,7 @@ class Biz@Inject()(
     menus.filter(_.PCode == pMenuCode).sortBy(_.Order) map {
       menu ⇒
         val entity = MenuTree(Option(menu), Seq())
-        entity.Children = buildMenuTree(menu.Code, menus)
+        entity.Children = buildMenuTree(menu.Code, menus).sortBy(_.Menu.getOrElse(Menu()).Order.getOrElse(0))
         entity
     }
   }
@@ -25,7 +25,7 @@ class Biz@Inject()(
   def listAllMenuTrees(): Future[Seq[MenuTree]] = {
     menuDAO.findAll() map {
       menus =>
-        buildMenuTree("root", menus.distinct)
+        buildMenuTree("root", menus).sortBy(_.Menu.getOrElse(Menu()).Order.getOrElse(0))
     }
   }
 

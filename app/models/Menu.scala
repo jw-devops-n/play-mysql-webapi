@@ -15,6 +15,7 @@ case class Menu(
                  var Icon: Option[String] = None,
                  var Order: Option[Int] = None,
                  var IsIconVisible: Option[Boolean] = None,
+                 var IsRouter: Option[Boolean] = None,
                  var Creator: Option[Int] = None,
                  var CreateTime: Option[DateTime] = None,
                  var Updater: Option[Int] = None,

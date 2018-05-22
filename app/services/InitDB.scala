@@ -20,6 +20,8 @@ class InitDB @Inject()(
                         projectDAO: ProjectDAO,
                         workTimeDAO: WorkTimeDAO,
                         menuDAO: MenuDAO,
+                        serverDAO: ServerDAO,
+                        appInformationDAO: AppInformationDAO,
                         clock: Clock,
                         appLifecycle: ApplicationLifecycle,
                         implicit val ec: ExecutionContext
@@ -36,6 +38,8 @@ class InitDB @Inject()(
   projectDAO.createTable()
   workTimeDAO.createTable()
   menuDAO.createTable()
+  serverDAO.createTable()
+  appInformationDAO.createTable()
 
   appLifecycle.addStopHook { () =>
     val stop: Instant = clock.instant

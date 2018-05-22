@@ -83,11 +83,16 @@ class HomeController @Inject()(
             }
           },
           m => {
-            m.Creator = Some(uid.toInt)
-            m.CreateTime = Some(DateTime.now())
-            menuDAO.add(m) map {
-              n =>
-                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+            menuDAO.get(m.Code) flatMap {
+              case true =>
+                m.Creator = Some(uid.toInt)
+                m.CreateTime = Some(DateTime.now())
+                menuDAO.add(m) map {
+                  n =>
+                    Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+                }
+              case false =>
+                Future(BadRequest(Json.toJson(ProStatus(EMsg = Option("code is exist")))))
             } recover {
               case ex: Exception ⇒
                 InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))

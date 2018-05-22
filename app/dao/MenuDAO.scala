@@ -35,6 +35,8 @@ trait MenuComponent {
 
     def isiconvisible = column[Option[Boolean]]("ISICONVISIBLE")
 
+    def isrouter = column[Option[Boolean]]("ISROUTER")
+
     def creator = column[Option[Int]]("CREATOR")
 
     def createtime = column[Option[DateTime]]("CREATETIME")
@@ -44,12 +46,12 @@ trait MenuComponent {
     def updatetime = column[Option[DateTime]]("UPDATETIME")
 
 
-    def * = (menuno, code, pcode, path, name, icon, order, isiconvisible, creator, createtime, updater, updatetime).shaped <>
+    def * = (menuno, code, pcode, path, name, icon, order, isiconvisible, isrouter, creator, createtime, updater, updatetime).shaped <>
       ( {
-        case (menuno, code, pcode, path, name, icon, order, isiconvisible, creator, createtime, updater, updatetime) =>
-          Menu(menuno, code, pcode, path, name, icon, order, isiconvisible, creator, createtime, updater, updatetime)
+        case (menuno, code, pcode, path, name, icon, order, isiconvisible, isrouter, creator, createtime, updater, updatetime) =>
+          Menu(menuno, code, pcode, path, name, icon, order, isiconvisible, isrouter, creator, createtime, updater, updatetime)
       }, { m: Menu =>
-        Some(m.MenuNo, m.Code, m.PCode, m.Path, m.Name, m.Icon, m.Order, m.IsIconVisible, m.Creator, m.CreateTime, m.Updater, m.UpdateTime)
+        Some(m.MenuNo, m.Code, m.PCode, m.Path, m.Name, m.Icon, m.Order, m.IsIconVisible, m.IsRouter, m.Creator, m.CreateTime, m.Updater, m.UpdateTime)
       })
   }
 
@@ -80,10 +82,17 @@ class MenuDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
       menus.filter(_.menuno === m.MenuNo).update(m)
     )
   }
+
   def get(mNo: Int): Future[Option[Menu]] = {
     db.run(
       menus.filter(_.menuno === mNo).result
     ).map(_.headOption)
+  }
+
+  def get(code: String): Future[Boolean] = {
+    db.run(
+      menus.filter(_.code === code).result
+    ).map(_.headOption.isEmpty)
   }
 
   def delete(mNo: Int): Future[Int] = {

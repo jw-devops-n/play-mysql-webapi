@@ -6,7 +6,7 @@ scalaVersion := "2.12.2"
 
 lazy val `tallsafe` = (project in file(".")).enablePlugins(PlayScala).disablePlugins(PlayFilters)
 
-libraryDependencies ++= Seq(guice, ws,
+libraryDependencies ++= Seq(guice, ws,filters,
   "com.typesafe.play" %% "play-json" % "2.6.8",
   "com.typesafe.play" %% "play-slick" % "3.0.3",
   "mysql" % "mysql-connector-java" % "5.1.38")
