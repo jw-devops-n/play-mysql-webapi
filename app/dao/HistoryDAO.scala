@@ -77,19 +77,21 @@ class HistoryDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     ).map(_ => cs.length)
   }
 
-  def gets(empNo: Option[Int], proNo: Option[Int]): Future[Seq[History]] = {
-    if (empNo.nonEmpty) {
+  def empHistorys(empNo: Option[Int]): PartialFunction[Boolean, Future[Seq[History]]] = {
+    case true =>
       db.run(
         historys.filter(_.empno === empNo.get).result
       )
-    } else if (proNo.nonEmpty) {
+  }
+
+  def proHistorys(proNo: Option[Int]): PartialFunction[Boolean, Future[Seq[History]]] = {
+    case _ =>
       db.run(
         historys.filter(_.prono === proNo.get).result
       )
-    } else {
-      Future(Nil)
-    }
-
   }
 
+  def gets(empNo: Option[Int], proNo: Option[Int]): Future[Seq[History]] = {
+    (empHistorys(empNo) orElse proHistorys(proNo)) (empNo.nonEmpty)
+  }
 }
