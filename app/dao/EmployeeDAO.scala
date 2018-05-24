@@ -24,6 +24,8 @@ trait EmployeeComponent {
 
     def empname = column[Option[String]]("EMPNAME")
 
+    def headportrait = column[Option[String]]("HEADPORTRAIT")
+
     def openid = column[Option[String]]("OPENID")
 
     def role = column[Option[String]]("ROLE")
@@ -43,12 +45,12 @@ trait EmployeeComponent {
     def updatetime = column[Option[DateTime]]("UPDATETIME")
 
 
-    def * = (empno, username, password, empname, openid, role, email, department, emptel, creator, createtime, updater, updatetime).shaped <>
+    def * = (empno, username, password, empname, headportrait, openid, role, email, department, emptel, creator, createtime, updater, updatetime).shaped <>
       ( {
-        case (empno, username, password, empname, openid, role, email, department, emptel, creator, createtime, updater, updatetime) =>
-          Employee(empno, username, password, empname, openid, role, email, department, emptel, creator, createtime, updater, updatetime)
+        case (empno, username, password, empname, headportrait, openid, role, email, department, emptel, creator, createtime, updater, updatetime) =>
+          Employee(empno, username, password, empname, headportrait, openid, role, email, department, emptel, creator, createtime, updater, updatetime)
       }, { e: Employee =>
-        Some((e.EmpNo, e.UserName, e.PassWord, e.EmpName, e.Openid, e.Role, e.Email, e.Department, e.EmpTel, e.Creator, e.CreateTime, e.Updater, e.UpdateTime))
+        Some((e.EmpNo, e.UserName, e.PassWord, e.EmpName, e.HeadPortrait, e.Openid, e.Role, e.Email, e.Department, e.EmpTel, e.Creator, e.CreateTime, e.Updater, e.UpdateTime))
       })
   }
 
@@ -89,6 +91,12 @@ class EmployeeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     )
   }
 
+  def check(userName: String): Future[Boolean] = {
+    db.run(
+      employees.filter(_.username === userName).result
+    ).map(_.headOption.isEmpty)
+  }
+
   def addInBatch(es: Seq[Employee]): Future[Int] = {
     db.run(
       employees ++= es
@@ -119,5 +127,8 @@ class EmployeeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     ) map (_.headOption)
   }
 
+  def list(): Future[Seq[Employee]] = {
+    db.run(employees.result)
+  }
 
 }

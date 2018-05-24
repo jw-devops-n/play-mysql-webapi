@@ -11,6 +11,7 @@ case class Employee(
                      var UserName: String,
                      var PassWord: String,
                      var EmpName: Option[String] = None,
+                     var HeadPortrait: Option[String] = None,
                      var Openid: Option[String] = None,
                      var Role: Option[String] = None,
                      var Email: Option[String] = None,

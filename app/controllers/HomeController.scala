@@ -58,7 +58,7 @@ class HomeController @Inject()(
             case Some(e) =>
               Ok(Json.toJson(ProStatus(Status = true))).withSession(req.session + (config.get[String]("auth.userid") -> e.EmpNo.toString))
             case _ =>
-              Unauthorized
+              BadRequest(Json.toJson(ProStatus(EMsg = Some("用户名或密码错误！"))))
           } recover {
             case ex: Exception ⇒
               InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -83,7 +83,7 @@ class HomeController @Inject()(
             }
           },
           m => {
-            menuDAO.get(m.Code) flatMap {
+            menuDAO.checkIsEx(m.Code) flatMap {
               case true =>
                 m.Creator = Some(uid.toInt)
                 m.CreateTime = Some(DateTime.now())
@@ -148,7 +148,20 @@ class HomeController @Inject()(
         }
   }
 
-  def getAllMenuTrees(): EssentialAction = re.withAuthFuture {
+  def getMenuByCode: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        val code = req.getQueryString("code").getOrElse("")
+        menuDAO.get(code).map {
+          menu =>
+            Ok(Json.toJson(menu))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
+  }
+
+  def getAllMenuTrees: EssentialAction = re.withAuthFuture {
     _ =>
       implicit req =>
         biz.listAllMenuTrees().map {
@@ -160,6 +173,17 @@ class HomeController @Inject()(
         }
   }
 
+  def getAllMenuElTrees: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        biz.listAllMenuElTrees().map {
+          trees =>
+            Ok(Json.toJson(trees))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
+  }
 
   def addCustomer(): EssentialAction = re.withAuthFuture(parse.json) {
     _ =>
@@ -225,20 +249,33 @@ class HomeController @Inject()(
       }
   }
 
+  def checkUserName: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        val username = req.getQueryString("username").getOrElse("")
+        employeeDAO.check(username).map {
+          result =>
+            Ok(Json.toJson(ProStatus(Status = result)))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
+  }
+
   def addEmployee(): EssentialAction = re.withAuthFuture(parse.json) {
     _ =>
       implicit req =>
         req.body.validate[Employee].fold(
           error => {
             Future {
-              BadRequest(error.toString)
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
             }
           },
           c => {
             c.PassWord = parseToMD5(c.PassWord)
             employeeDAO.add(c) map {
               n =>
-                Ok(n.toString)
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
             } recover {
               case ex: Exception ⇒
                 InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -287,6 +324,18 @@ class HomeController @Inject()(
         case ex: Exception ⇒
           InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
       }
+  }
+
+  def listEmployees: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        employeeDAO.list().map {
+          result =>
+            Ok(Json.toJson(result))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
   }
 
   def addProject(): Action[JsValue] = Action.async(parse.json) {

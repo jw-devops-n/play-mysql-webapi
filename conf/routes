@@ -1,54 +1,62 @@
 ## Routes
-GET           /                            controllers.HomeController.index
+GET           /                               controllers.HomeController.index
 
-POST          /login                       controllers.HomeController.login
+POST          /login                          controllers.HomeController.login
 
-GET           /loginout                    controllers.HomeController.loginOut
+GET           /loginout                       controllers.HomeController.loginOut
 #menu
-GET           /menu                        controllers.HomeController.getAllMenuTrees
+GET           /menu                           controllers.HomeController.getAllMenuTrees
 
-GET           /menu/no                     controllers.HomeController.getMenu(no:Int)
+GET           /el/menu                        controllers.HomeController.getAllMenuElTrees
 
-POST          /menu                        controllers.HomeController.addMenu()
+GET           /code/menu                      controllers.HomeController.getMenuByCode
 
-PUT           /menu                        controllers.HomeController.updateMenu()
+GET           /menu/:no                       controllers.HomeController.getMenu(no:Int)
 
-DELETE        /menu/no                     controllers.HomeController.deleteMenu(no:Int)
+POST          /menu                           controllers.HomeController.addMenu()
+
+PUT           /menu                           controllers.HomeController.updateMenu()
+
+DELETE        /menu/:no                       controllers.HomeController.deleteMenu(no:Int)
 #customer
-GET           /customer/:no                controllers.HomeController.getCustomer(no:Int)
+GET           /customer/:no                   controllers.HomeController.getCustomer(no:Int)
 
-POST          /customer                    controllers.HomeController.addCustomer()
+POST          /customer                       controllers.HomeController.addCustomer()
 
-PUT           /customer                    controllers.HomeController.updateCustomer()
+PUT           /customer                       controllers.HomeController.updateCustomer()
 
-DELETE        /customer/:no                controllers.HomeController.deleteCustomer(no:Int)
+DELETE        /customer/:no                   controllers.HomeController.deleteCustomer(no:Int)
 
-GET           /customer/project/:no        controllers.HomeController.getProjects(no:Int)
+GET           /customer/project/:no           controllers.HomeController.getProjects(no:Int)
 #link
-GET           /link/:no                    controllers.HomeController.getLink(no:Int)
+GET           /link/:no                       controllers.HomeController.getLink(no:Int)
 
-POST          /link                        controllers.HomeController.addLink()
+POST          /link                           controllers.HomeController.addLink()
 
-PUT           /link                        controllers.HomeController.updateLink()
+PUT           /link                           controllers.HomeController.updateLink()
 
-DELETE        /link/:no                    controllers.HomeController.deleteLink(no:Int)
+DELETE        /link/:no                       controllers.HomeController.deleteLink(no:Int)
 #employee
-GET           /employee/:no                controllers.HomeController.getEmployee(no:Int)
+GET           /check/employee/username        controllers.HomeController.checkUserName
 
-POST          /employee                    controllers.HomeController.addEmployee()
+GET           /all/employee                   controllers.HomeController.listEmployees
 
-PUT           /employee                    controllers.HomeController.updateEmployee()
+GET           /employee/:no                   controllers.HomeController.getEmployee(no:Int)
 
-DELETE        /employee/:no                controllers.HomeController.deleteEmployee(no:Int)
+POST          /employee                       controllers.HomeController.addEmployee()
+
+PUT           /employee                       controllers.HomeController.updateEmployee()
+
+DELETE        /employee/:no                   controllers.HomeController.deleteEmployee(no:Int)
 #project
-GET           /project/:no                 controllers.HomeController.getProject(no:Int)
+GET           /project/:no                    controllers.HomeController.getProject(no:Int)
 
-POST          /project                     controllers.HomeController.addProject()
+POST          /project                        controllers.HomeController.addProject()
 
-PUT           /project                     controllers.HomeController.updateProject()
+PUT           /project                        controllers.HomeController.updateProject()
 
-DELETE        /project/:no                 controllers.HomeController.deleteProject(no:Int)
+DELETE        /project/:no                    controllers.HomeController.deleteProject(no:Int)
 #worktime
-POST          /worktime                    controllers.HomeController.addWorkTime()
+POST          /worktime                       controllers.HomeController.addWorkTime()
 # Map static resources from the /public folder to the /assets URL path
-GET           /assets/*file                controllers.Assets.versioned(path="/public", file: Asset)
+GET           /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)

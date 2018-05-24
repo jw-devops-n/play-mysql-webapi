@@ -89,7 +89,13 @@ class MenuDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     ).map(_.headOption)
   }
 
-  def get(code: String): Future[Boolean] = {
+  def get(code: String): Future[Option[Menu]] = {
+    db.run(
+      menus.filter(_.code === code).result
+    ).map(_.headOption)
+  }
+
+  def checkIsEx(code: String): Future[Boolean] = {
     db.run(
       menus.filter(_.code === code).result
     ).map(_.headOption.isEmpty)
