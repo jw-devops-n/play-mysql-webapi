@@ -70,7 +70,7 @@ class HomeController @Inject()(
   def loginOut: EssentialAction = re.withAuthFuture {
     _ =>
       implicit req =>
-        Future(Ok(Json.toJson(ProStatus(Status = true))).withSession(req.session - config.get[String]("auth.userid")))
+        Future(Ok(Json.toJson(ProStatus(Status = true))).withNewSession)
   }
 
   def addMenu(): EssentialAction = re.withAuthFuture(parse.json) {

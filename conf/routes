@@ -60,3 +60,7 @@ DELETE        /project/:no                    controllers.HomeController.deleteP
 POST          /worktime                       controllers.HomeController.addWorkTime()
 # Map static resources from the /public folder to the /assets URL path
 GET           /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
+
+GET           /img/*file                      controllers.FileController.atImg(file)
+
+GET           /video/*file                    controllers.FileController.atVideo(file)
