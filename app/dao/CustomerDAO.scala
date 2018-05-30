@@ -59,7 +59,7 @@ class CustomerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def add(c: Customer): Future[Int] = {
     db.run(
-      customers += c
+      customers returning customers.map(_.customerno) += c
     )
   }
 
@@ -89,12 +89,12 @@ class CustomerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def list(): Future[Seq[CustomerEntity]] = {
     db.run(
-      (customers join links on (_.customerno === _.customerno)).result
-    ).map{
-      ss=>
-        ss.map{
-          s=>
-           CustomerEntity(Some(s._1),Some(s._2))
+      (customers joinLeft  links on (_.customerno === _.customerno)).result
+    ).map {
+      ss =>
+        ss.map {
+          s =>
+            CustomerEntity(Some(s._1), s._2)
         }
     }
   }

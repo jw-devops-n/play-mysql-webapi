@@ -191,7 +191,7 @@ class HomeController @Inject()(
         req.body.validate[Customer].fold(
           error => {
             Future {
-              BadRequest(error.toString)
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
             }
           },
           c => {
@@ -249,16 +249,93 @@ class HomeController @Inject()(
       }
   }
 
-  def listCustomers(): EssentialAction =re.withAuthFuture{
-    _=>
-      implicit req=>
-      customerDAO.list().map {
-        result =>
-          Ok(Json.toJson(result))
-      } recover {
-        case ex: Exception ⇒
-          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-      }
+  def listCustomers(): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        customerDAO.list().map {
+          result =>
+            Ok(Json.toJson(result))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
+  }
+
+  def addCustomerEntity(): EssentialAction = re.withAuthFuture(parse.json) {
+    uid =>
+      implicit req =>
+        req.body.validate[CustomerEntity2].fold(
+          error => {
+            Future {
+              BadRequest(error.toString)
+            }
+          },
+          c => {
+            val customer = c.Customer.getOrElse(Customer())
+            customer.Creator = Some(uid.toInt)
+            customer.CreateTime = Some(DateTime.now())
+            customerDAO.add(customer) flatMap {
+              cid =>
+                c.Links.foreach(l => l.CustomerNo = cid)
+                linkDAO.addInBatch(c.Links).map {
+                  n =>
+                    Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n + 1))))
+                }
+            } recover {
+              case ex: Exception ⇒
+                InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+            }
+          }
+        )
+  }
+
+  def updateCustomerEntity(): EssentialAction = re.withAuthFuture(parse.json) {
+    uid =>
+      implicit req =>
+        req.body.validate[CustomerEntity2].fold(
+          error => {
+            Future {
+              BadRequest(error.toString)
+            }
+          },
+          c => {
+            val customer = c.Customer.getOrElse(Customer())
+            customer.Updater = Some(uid.toInt)
+            customer.UpdateTime = Some(DateTime.now())
+            c.Links.groupBy(_.LinkNo).map {
+              s =>
+                s._1 match {
+                  case 0 =>
+                    linkDAO.addInBatch(s._2)
+                  case _ =>
+                    linkDAO.updateInBatch(s._2)
+                }
+            }
+            customerDAO.update(customer) map {
+              n =>
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n + 1))))
+            } recover {
+              case ex: Exception ⇒
+                InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+            }
+          }
+        )
+  }
+
+  def rmCustomerEntity(): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        val cNo = req.getQueryString("customerNo").getOrElse("").toInt
+        linkDAO.deleteByCNo(cNo).flatMap {
+          _ =>
+            customerDAO.delete(cNo).map {
+              _ =>
+                Ok(Json.toJson(ProStatus(Status = true)))
+            }
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
   }
 
   def checkUserName: EssentialAction = re.withAuthFuture {

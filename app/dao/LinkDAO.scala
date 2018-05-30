@@ -38,7 +38,7 @@ trait LinkComponent {
         case (linkno, customerno, linkname, linktel, creator, createtime, updater, updatetime) =>
           Link(linkno, customerno, linkname, linktel, creator, createtime, updater, updatetime)
       }, { l: Link =>
-        Some((l.LinkNo, l.CustomerNo, l.LinkName, l.LinkTel, l.Creator,l.CreateTime,l.Updater,l.UpdateTime))
+        Some((l.LinkNo, l.CustomerNo, l.LinkName, l.LinkTel, l.Creator, l.CreateTime, l.Updater, l.UpdateTime))
       })
   }
 
@@ -70,6 +70,17 @@ class LinkDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
     ).map(_ => ls.length)
   }
 
+  def updateInBatch(ls: Seq[Link]): Future[Unit] = {
+    db.run(
+      DBIO.seq(
+        ls.map {
+          l =>
+            links.filter(_.linkno === l.LinkNo).update(l)
+        }: _*
+      ).transactionally
+    )
+  }
+
   def update(l: Link): Future[Int] = {
     db.run(
       links.filter(_.linkno === l.LinkNo).update(l)
@@ -79,6 +90,12 @@ class LinkDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
   def delete(lNo: Int): Future[Int] = {
     db.run(
       links.filter(_.linkno === lNo).delete
+    )
+  }
+
+  def deleteByCNo(cNo:Int):Future[Int]={
+    db.run(
+      links.filter(_.customerno === cNo).delete
     )
   }
 

@@ -7,9 +7,9 @@ import play.api.libs.json.{Json, OFormat}
   * Created by TallSafe on 2018/5/10.
   */
 case class Customer(
-                     var CustomerNo: Int,
-                     var CustomerName: String,
-                     var CustomerTel: Option[String],
+                     var CustomerNo: Int=0,
+                     var CustomerName: String="",
+                     var CustomerTel: Option[String]=None,
                      var Creator: Option[Int] = None,
                      var CreateTime: Option[DateTime] = None,
                      var Updater: Option[Int] = None,

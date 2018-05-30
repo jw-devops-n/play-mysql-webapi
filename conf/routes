@@ -38,6 +38,12 @@ POST          /link                           controllers.HomeController.addLink
 PUT           /link                           controllers.HomeController.updateLink()
 
 DELETE        /link/:no                       controllers.HomeController.deleteLink(no:Int)
+#customer&link
+POST          /customerentity                 controllers.HomeController.addCustomerEntity()
+
+PUT           /customerentity                 controllers.HomeController.updateCustomerEntity()
+
+DELETE        /customerentity                 controllers.HomeController.rmCustomerEntity()
 #employee
 GET           /check/employee/username        controllers.HomeController.checkUserName
 
