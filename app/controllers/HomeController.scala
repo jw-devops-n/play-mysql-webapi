@@ -249,6 +249,18 @@ class HomeController @Inject()(
       }
   }
 
+  def listCustomers(): EssentialAction =re.withAuthFuture{
+    _=>
+      implicit req=>
+      customerDAO.list().map {
+        result =>
+          Ok(Json.toJson(result))
+      } recover {
+        case ex: Exception ⇒
+          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+      }
+  }
+
   def checkUserName: EssentialAction = re.withAuthFuture {
     _ =>
       implicit req =>

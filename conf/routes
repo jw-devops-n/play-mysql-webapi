@@ -19,6 +19,8 @@ PUT           /menu                           controllers.HomeController.updateM
 
 DELETE        /menu/:no                       controllers.HomeController.deleteMenu(no:Int)
 #customer
+GET           /customers                      controllers.HomeController.listCustomers()
+
 GET           /customer/:no                   controllers.HomeController.getCustomer(no:Int)
 
 POST          /customer                       controllers.HomeController.addCustomer()

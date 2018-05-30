@@ -2,11 +2,12 @@ package dao
 
 
 import com.google.inject.Inject
-import models.Customer
+import models.{Customer, CustomerEntity, Link}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import dao.CustomColumnTypes._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 trait CustomerComponent {
@@ -42,12 +43,13 @@ trait CustomerComponent {
 }
 
 class CustomerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
-                            implicit val ec: ExecutionContext) extends CustomerComponent
+                            implicit val ec: ExecutionContext) extends CustomerComponent with LinkComponent
   with HasDatabaseConfigProvider[JdbcProfile] {
 
   import profile.api._
 
   private lazy val customers = TableQuery[CustomerTable]
+  private lazy val links = TableQuery[LinkTable]
 
   def createTable(): Unit = {
     db.run(
@@ -85,4 +87,15 @@ class CustomerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     ) map (_.headOption)
   }
 
+  def list(): Future[Seq[CustomerEntity]] = {
+    db.run(
+      (customers join links on (_.customerno === _.customerno)).result
+    ).map{
+      ss=>
+        ss.map{
+          s=>
+           CustomerEntity(Some(s._1),Some(s._2))
+        }
+    }
+  }
 }
