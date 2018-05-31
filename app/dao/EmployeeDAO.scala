@@ -2,11 +2,12 @@ package dao
 
 import services.StringUtil._
 import com.google.inject.Inject
-import models.Employee
+import models.{Employee, EmployeeComBox}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import dao.CustomColumnTypes._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 trait EmployeeComponent {
@@ -131,4 +132,15 @@ class EmployeeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     db.run(employees.result)
   }
 
+  def listComBoxs(): Future[Seq[EmployeeComBox]] = {
+    db.run(
+      employees.result
+    ).map {
+      ss =>
+        ss.map {
+          s =>
+            EmployeeComBox(s.EmpNo, s.EmpName)
+        }
+    }
+  }
 }

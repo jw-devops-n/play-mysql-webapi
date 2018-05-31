@@ -18,6 +18,8 @@ POST          /menu                           controllers.HomeController.addMenu
 PUT           /menu                           controllers.HomeController.updateMenu()
 
 DELETE        /menu/:no                       controllers.HomeController.deleteMenu(no:Int)
+#code
+GET           /comboxs/code                   controllers.HomeController.getCodeComBoxs
 #customer
 GET           /customers                      controllers.HomeController.listCustomers()
 
@@ -30,6 +32,8 @@ PUT           /customer                       controllers.HomeController.updateC
 DELETE        /customer/:no                   controllers.HomeController.deleteCustomer(no:Int)
 
 GET           /customer/project/:no           controllers.HomeController.getProjects(no:Int)
+
+GET           /comboxs/customer               controllers.HomeController.getCustomerComBoxs
 #link
 GET           /link/:no                       controllers.HomeController.getLink(no:Int)
 
@@ -56,14 +60,16 @@ POST          /employee                       controllers.HomeController.addEmpl
 PUT           /employee                       controllers.HomeController.updateEmployee()
 
 DELETE        /employee/:no                   controllers.HomeController.deleteEmployee(no:Int)
+
+GET           /comboxs/employee               controllers.HomeController.getEmployeeComBoxs
 #project
-GET           /project/:no                    controllers.HomeController.getProject(no:Int)
+GET           /project/:no                    controllers.HomeController.getProject(no:String)
 
 POST          /project                        controllers.HomeController.addProject()
 
 PUT           /project                        controllers.HomeController.updateProject()
 
-DELETE        /project/:no                    controllers.HomeController.deleteProject(no:Int)
+DELETE        /project/:no                    controllers.HomeController.deleteProject(no:String)
 #worktime
 POST          /worktime                       controllers.HomeController.addWorkTime()
 # Map static resources from the /public folder to the /assets URL path

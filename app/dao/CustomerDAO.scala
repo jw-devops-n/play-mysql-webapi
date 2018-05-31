@@ -2,7 +2,7 @@ package dao
 
 
 import com.google.inject.Inject
-import models.{Customer, CustomerEntity, Link}
+import models.{Customer, CustomerComBox, CustomerEntity, Link}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
@@ -89,12 +89,24 @@ class CustomerDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def list(): Future[Seq[CustomerEntity]] = {
     db.run(
-      (customers joinLeft  links on (_.customerno === _.customerno)).result
+      (customers joinLeft links on (_.customerno === _.customerno)).result
     ).map {
       ss =>
         ss.map {
           s =>
             CustomerEntity(Some(s._1), s._2)
+        }
+    }
+  }
+
+  def listComBoxs(): Future[Seq[CustomerComBox]] = {
+    db.run(
+      customers.result
+    ).map {
+      ss =>
+        ss.map {
+          s =>
+            CustomerComBox(s.CustomerNo, s.CustomerName)
         }
     }
   }

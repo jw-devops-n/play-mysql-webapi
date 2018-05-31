@@ -1,4 +1,5 @@
 package models
+
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, OFormat}
 
@@ -6,7 +7,7 @@ import play.api.libs.json.{Json, OFormat}
   * Created by TallSafe on 2018/5/10. 
   */
 case class Project(
-                    var ProNo: Int,
+                    var ProNo: String,
                     var CustomerNo: Int,
                     var ProName: String,
                     var EmpNo: Option[Int],
@@ -20,7 +21,9 @@ case class Project(
                     var Creator: Option[Int] = None,
                     var CreateTime: Option[DateTime] = None,
                     var Updater: Option[Int] = None,
-                    var UpdateTime: Option[DateTime] = None
+                    var UpdateTime: Option[DateTime] = None,
+                    var CustomerName: Option[String] = None,
+                    var EmpName: Option[String]= None,
                   )
 
 object Project {

@@ -15,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class InitDB @Inject()(
                         customerDAO: CustomerDAO,
                         employeeDAO: EmployeeDAO,
+                        codeDAO: CodeDAO,
                         historyDAO: HistoryDAO,
                         linkDAO: LinkDAO,
                         projectDAO: ProjectDAO,
@@ -33,6 +34,7 @@ class InitDB @Inject()(
   customerDAO.createTable()
   employeeDAO.createTable()
   employeeDAO.addAdmin()
+  codeDAO.createTable()
   historyDAO.createTable()
   linkDAO.createTable()
   projectDAO.createTable()

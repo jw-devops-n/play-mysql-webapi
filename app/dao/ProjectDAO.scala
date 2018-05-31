@@ -16,7 +16,7 @@ trait ProjectComponent {
 
   final class ProjectTable(tag: Tag) extends Table[Project](tag, "Project") {
 
-    def prono = column[Int]("PRONO", O.PrimaryKey, O.AutoInc)
+    def prono = column[String]("PRONO", O.PrimaryKey)
 
     def customerno = column[Int]("CUSTOMERNO")
 
@@ -90,13 +90,13 @@ class ProjectDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     )
   }
 
-  def delete(pNo: Int): Future[Int] = {
+  def delete(pNo: String): Future[Int] = {
     db.run(
       projects.filter(_.prono === pNo).delete
     )
   }
 
-  def get(pNo: Int): Future[Option[Project]] = {
+  def get(pNo: String): Future[Option[Project]] = {
     db.run(
       projects.filter(_.prono === pNo).result
     ) map (_.headOption)

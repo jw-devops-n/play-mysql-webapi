@@ -8,7 +8,7 @@ import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import play.api.mvc._
 import play.api.libs.json.{JsValue, Json}
-import services.Biz
+import services.{Biz, CodeService}
 import services.StringUtil._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,6 +27,7 @@ class HomeController @Inject()(
                                 projectDAO: ProjectDAO,
                                 workTimeDAO: WorkTimeDAO,
                                 biz: Biz,
+                                codeService: CodeService,
                                 cc: ControllerComponents,
                                 val config: Configuration,
                                 implicit val re: RestSecured,
@@ -185,6 +186,14 @@ class HomeController @Inject()(
         }
   }
 
+  def getCodeComBoxs: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        val sys = req.getQueryString("sys").getOrElse("")
+        val mod = req.getQueryString("mod").getOrElse("")
+        Future(Ok(Json.toJson(codeService.getCodes(sys, mod))))
+  }
+
   def addCustomer(): EssentialAction = re.withAuthFuture(parse.json) {
     _ =>
       implicit req =>
@@ -338,6 +347,18 @@ class HomeController @Inject()(
         }
   }
 
+  def getCustomerComBoxs: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        customerDAO.listComBoxs().map(
+          result =>
+            Ok(Json.toJson(result))
+        ) recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
+  }
+
   def checkUserName: EssentialAction = re.withAuthFuture {
     _ =>
       implicit req =>
@@ -427,6 +448,18 @@ class HomeController @Inject()(
         }
   }
 
+  def getEmployeeComBoxs: EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        employeeDAO.listComBoxs().map(
+          result =>
+            Ok(Json.toJson(result))
+        ) recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
+  }
+
   def addProject(): Action[JsValue] = Action.async(parse.json) {
     implicit req =>
       req.body.validate[Project].fold(
@@ -467,7 +500,7 @@ class HomeController @Inject()(
       )
   }
 
-  def deleteProject(pNo: Int): Action[AnyContent] = Action.async {
+  def deleteProject(pNo: String): Action[AnyContent] = Action.async {
     implicit req =>
       projectDAO.delete(pNo).map {
         n =>
@@ -478,7 +511,7 @@ class HomeController @Inject()(
       }
   }
 
-  def getProject(pNo: Int): Action[AnyContent] = Action.async {
+  def getProject(pNo: String): Action[AnyContent] = Action.async {
     implicit req =>
       projectDAO.get(pNo).map {
         c =>
