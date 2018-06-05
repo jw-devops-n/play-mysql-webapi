@@ -107,4 +107,10 @@ class ProjectDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       projects.filter(_.customerno === cNo).result
     )
   }
+
+  def list(): Future[Seq[Project]] = {
+    db.run(
+      projects.result
+    )
+  }
 }

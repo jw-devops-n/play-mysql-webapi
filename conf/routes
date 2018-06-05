@@ -70,6 +70,8 @@ POST          /project                        controllers.HomeController.addProj
 PUT           /project                        controllers.HomeController.updateProject()
 
 DELETE        /project/:no                    controllers.HomeController.deleteProject(no:String)
+
+GET           /projects                        controllers.HomeController.listProjects()
 #worktime
 POST          /worktime                       controllers.HomeController.addWorkTime()
 # Map static resources from the /public folder to the /assets URL path

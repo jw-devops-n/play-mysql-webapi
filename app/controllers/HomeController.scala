@@ -41,9 +41,8 @@ class HomeController @Inject()(
     */
 
   def index = Action {
-    val sTime = DateTime.now().plusDays(2)
-    val eTime = sTime.minusDays(sTime.getDayOfWeek - 1)
-    Ok("Application started  " + eTime.toString("yyyy/MM/dd"))
+    val sTime = DateTime.now()
+    Ok("Application started  " + sTime.toString("yyyy/MM/dd"))
   }
 
   def login: Action[JsValue] = Action.async(parse.json) {
@@ -206,7 +205,7 @@ class HomeController @Inject()(
           c => {
             customerDAO.add(c) map {
               n =>
-                Ok(n.toString)
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
             } recover {
               case ex: Exception ⇒
                 InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -226,7 +225,7 @@ class HomeController @Inject()(
         c => {
           customerDAO.update(c) map {
             n =>
-              Ok(n.toString)
+              Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
           } recover {
             case ex: Exception ⇒
               InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -240,7 +239,7 @@ class HomeController @Inject()(
       implicit req =>
         customerDAO.delete(cNo).map {
           n =>
-            Ok(n.toString)
+            Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
         } recover {
           case ex: Exception ⇒
             InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -276,7 +275,7 @@ class HomeController @Inject()(
         req.body.validate[CustomerEntity2].fold(
           error => {
             Future {
-              BadRequest(error.toString)
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
             }
           },
           c => {
@@ -304,7 +303,7 @@ class HomeController @Inject()(
         req.body.validate[CustomerEntity2].fold(
           error => {
             Future {
-              BadRequest(error.toString)
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
             }
           },
           c => {
@@ -405,7 +404,7 @@ class HomeController @Inject()(
         c => {
           employeeDAO.update(c) map {
             n =>
-              Ok(n.toString)
+              Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
           } recover {
             case ex: Exception ⇒
               InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -418,7 +417,7 @@ class HomeController @Inject()(
     implicit req =>
       employeeDAO.delete(eNo).map {
         n =>
-          Ok(n.toString)
+          Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
       } recover {
         case ex: Exception ⇒
           InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -460,77 +459,111 @@ class HomeController @Inject()(
         }
   }
 
-  def addProject(): Action[JsValue] = Action.async(parse.json) {
-    implicit req =>
-      req.body.validate[Project].fold(
-        error => {
-          Future {
-            BadRequest(error.toString)
+  def addProject(): EssentialAction = re.withAuthFuture(parse.json) {
+    uid =>
+      implicit req =>
+        req.body.validate[Project].fold(
+          error => {
+            Future {
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
+            }
+          },
+          c => {
+            c.Creator = Some(uid.toInt)
+            c.CreateTime = Some(DateTime.now())
+            projectDAO.add(c) map {
+              n =>
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+            } recover {
+              case ex: Exception ⇒
+                InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+            }
           }
-        },
-        c => {
-          projectDAO.add(c) map {
-            n =>
-              Ok(n.toString)
-          } recover {
-            case ex: Exception ⇒
-              InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        )
+  }
+
+  def updateProject(): EssentialAction = re.withAuthFuture(parse.json) {
+    uid =>
+      implicit req =>
+        req.body.validate[Project].fold(
+          error => {
+            Future {
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
+            }
+          },
+          c => {
+            c.Updater = Some(uid.toInt)
+            c.UpdateTime = Some(DateTime.now())
+            projectDAO.update(c) map {
+              n =>
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+            } recover {
+              case ex: Exception ⇒
+                InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+            }
           }
+        )
+  }
+
+  def deleteProject(pNo: String): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        projectDAO.delete(pNo).map {
+          n =>
+            Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
         }
-      )
   }
 
-  def updateProject(): Action[JsValue] = Action.async(parse.json) {
-    implicit req =>
-      req.body.validate[Project].fold(
-        error => {
-          Future {
-            BadRequest(error toString())
-          }
-        },
-        c => {
-          projectDAO.update(c) map {
-            n =>
-              Ok(n.toString)
-          } recover {
-            case ex: Exception ⇒
-              InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-          }
+  def getProject(pNo: String): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        projectDAO.get(pNo).map {
+          c =>
+            Ok(Json.toJson(c))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
         }
-      )
   }
 
-  def deleteProject(pNo: String): Action[AnyContent] = Action.async {
-    implicit req =>
-      projectDAO.delete(pNo).map {
-        n =>
-          Ok(n.toString)
-      } recover {
-        case ex: Exception ⇒
-          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-      }
+  def listProjects(): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        customerDAO.list().flatMap {
+          cs =>
+            employeeDAO.list().flatMap {
+              es =>
+                projectDAO.list().map {
+                  result =>
+                    result.foreach {
+                      r =>
+                        r.CustomerName = Some(cs.find(_.Customer.getOrElse(Customer()).CustomerNo == r.CustomerNo).getOrElse(CustomerEntity()).Customer.getOrElse(Customer()).CustomerName)
+                        r.EmpName = es.find(_.EmpNo == r.EmpNo).getOrElse(Employee(0, "", "")).EmpName
+                        r.ProStatus = codeService.getDescription("project", "status", r.ProStatus)
+                        r.ProType = codeService.getDescription("project", "type", r.ProType)
+                    }
+                    Ok(Json.toJson(result))
+                }
+            }
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
   }
 
-  def getProject(pNo: String): Action[AnyContent] = Action.async {
-    implicit req =>
-      projectDAO.get(pNo).map {
-        c =>
-          Ok(Json.toJson(c))
-      } recover {
-        case ex: Exception ⇒
-          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-      }
-  }
-
-  def getProjects(cNo: Int): Action[AnyContent] = Action.async {
-    implicit req =>
-      projectDAO.gets(cNo).map {
-        c =>
-          Ok(Json.toJson(c))
-      } recover {
-        case ex: Exception ⇒
-          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-      }
+  def getProjects(cNo: Int): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        projectDAO.gets(cNo).map {
+          c =>
+            Ok(Json.toJson(c))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        }
   }
 
   def addLink(): Action[JsValue] = Action.async(parse.json) {
@@ -538,13 +571,13 @@ class HomeController @Inject()(
       req.body.validate[Link].fold(
         error => {
           Future {
-            BadRequest(error.toString)
+            BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
           }
         },
         c => {
           linkDAO.add(c) map {
             n =>
-              Ok(n.toString)
+              Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
           } recover {
             case ex: Exception ⇒
               InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -564,7 +597,7 @@ class HomeController @Inject()(
         c => {
           linkDAO.update(c) map {
             n =>
-              Ok(n.toString)
+              Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
           } recover {
             case ex: Exception ⇒
               InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -577,7 +610,7 @@ class HomeController @Inject()(
     implicit req =>
       linkDAO.delete(lNo).map {
         n =>
-          Ok(n.toString)
+          Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
       } recover {
         case ex: Exception ⇒
           InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
@@ -614,7 +647,7 @@ class HomeController @Inject()(
                 w.WorkDate = wDate
                 workTimeDAO.add(w) map {
                   n =>
-                    Ok(n.toString)
+                    Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
                 } recover {
                   case ex: Exception ⇒
                     Logger.info(ex.getMessage)

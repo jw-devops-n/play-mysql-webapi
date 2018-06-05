@@ -97,9 +97,18 @@ class CodeService @Inject()(val codeDAO: CodeDAO, implicit val ec: ExecutionCont
     }
   }
 
+  def refreshCodes(): Future[Boolean] = {
+    codeDAO.findAll() map (
+      codes => {
+        codeList.clear()
+        codeList ++= codes
+        true
+      })
+  }
+
   private def refreshAllCodes(): Future[Any] = {
     val gap = DateTime.now.getMillis - lastSyncTime.getMillis
-    if (gap > 20000 || codeList.isEmpty) {
+    if (gap > 1000 || codeList.isEmpty) {
       lastSyncTime = DateTime.now()
 
       codeDAO.findAll() map {
