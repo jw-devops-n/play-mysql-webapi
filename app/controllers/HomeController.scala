@@ -566,102 +566,118 @@ class HomeController @Inject()(
         }
   }
 
-  def addLink(): Action[JsValue] = Action.async(parse.json) {
-    implicit req =>
-      req.body.validate[Link].fold(
-        error => {
-          Future {
-            BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
+  def addLink(): EssentialAction = re.withAuthFuture(parse.json) {
+    _ =>
+      implicit req =>
+        req.body.validate[Link].fold(
+          error => {
+            Future {
+              BadRequest(Json.toJson(ProStatus(EMsg = Some(error.toString()))))
+            }
+          },
+          c => {
+            linkDAO.add(c) map {
+              n =>
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+            } recover {
+              case ex: Exception ⇒
+                InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+            }
           }
-        },
-        c => {
-          linkDAO.add(c) map {
-            n =>
-              Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
-          } recover {
-            case ex: Exception ⇒
-              InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+        )
+  }
+
+  def updateLink(): EssentialAction = re.withAuthFuture(parse.json) {
+    _ =>
+      implicit req =>
+        req.body.validate[Link].fold(
+          error => {
+            Future {
+              BadRequest(error toString())
+            }
+          },
+          c => {
+            linkDAO.update(c) map {
+              n =>
+                Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+            } recover {
+              case ex: Exception ⇒
+                InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+            }
           }
+        )
+  }
+
+  def deleteLink(lNo: Int): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        linkDAO.delete(lNo).map {
+          n =>
+            Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
         }
-      )
   }
 
-  def updateLink(): Action[JsValue] = Action.async(parse.json) {
-    implicit req =>
-      req.body.validate[Link].fold(
-        error => {
-          Future {
-            BadRequest(error toString())
-          }
-        },
-        c => {
-          linkDAO.update(c) map {
-            n =>
-              Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
-          } recover {
-            case ex: Exception ⇒
-              InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-          }
+  def getLink(lNo: Int): EssentialAction = re.withAuthFuture {
+    _ =>
+      implicit req =>
+        linkDAO.get(lNo).map {
+          c =>
+            Ok(Json.toJson(c))
+        } recover {
+          case ex: Exception ⇒
+            InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
         }
-      )
   }
 
-  def deleteLink(lNo: Int): Action[AnyContent] = Action.async {
-    implicit req =>
-      linkDAO.delete(lNo).map {
-        n =>
-          Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
-      } recover {
-        case ex: Exception ⇒
-          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-      }
-  }
-
-  def getLink(lNo: Int): Action[AnyContent] = Action.async {
-    implicit req =>
-      linkDAO.get(lNo).map {
-        c =>
-          Ok(Json.toJson(c))
-      } recover {
-        case ex: Exception ⇒
-          InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
-      }
-  }
-
-  def addWorkTime(): Action[JsValue] = Action.async(parse.json) {
-    implicit req =>
-      req.body.validate[WorkTime].fold(
-        error => {
-          Future {
-            BadRequest(error toString())
-          }
-        },
-        w => {
-          val wDate = new DateTime(w.WorkDate.getYear,
-            w.WorkDate.getMonthOfYear, w.WorkDate.getDayOfMonth,
-            12, 0, 0, 0
-          )
-          workTimeDAO.get(w.ProNo, w.EmpNo, wDate) flatMap {
-            old =>
-              if (old.isEmpty) {
-                w.WorkDate = wDate
-                workTimeDAO.add(w) map {
-                  n =>
-                    Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
-                } recover {
-                  case ex: Exception ⇒
-                    Logger.info(ex.getMessage)
-                    InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+  def addWorkTime(): EssentialAction = re.withAuthFuture(parse.json) {
+    _ =>
+      implicit req =>
+        req.body.validate[WorkTime].fold(
+          error => {
+            Future {
+              BadRequest(error toString())
+            }
+          },
+          w => {
+            val wDate = new DateTime(w.WorkDate.getYear,
+              w.WorkDate.getMonthOfYear, w.WorkDate.getDayOfMonth,
+              12, 0, 0, 0
+            )
+            workTimeDAO.get(w.ProNo, w.EmpNo, wDate) flatMap {
+              old =>
+                if (old.isEmpty) {
+                  w.WorkDate = wDate
+                  workTimeDAO.add(w) map {
+                    n =>
+                      Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
+                  } recover {
+                    case ex: Exception ⇒
+                      Logger.info(ex.getMessage)
+                      InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
+                  }
+                } else {
+                  Future(Ok("0"))
                 }
-              } else {
-                Future(Ok("0"))
-              }
-          } recoverWith {
-            case ex: Exception ⇒
-              Logger.info(ex.getMessage)
-              Future(InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString)))))
+            } recoverWith {
+              case ex: Exception ⇒
+                Future(InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString)))))
+            }
           }
+        )
+  }
+
+  def listWorkTimes(): EssentialAction = re.withAuthFuture {
+    uid =>
+      implicit req =>
+        workTimeDAO.listByUid(uid.toInt).map {
+          result =>
+            Ok(Json.toJson(result))
+        } recoverWith {
+          case ex: Exception ⇒
+            Future(InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString)))))
         }
-      )
   }
 }

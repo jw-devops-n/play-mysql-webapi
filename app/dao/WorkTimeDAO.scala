@@ -2,7 +2,7 @@ package dao
 
 import dao.CustomColumnTypes._
 import com.google.inject.Inject
-import models.WorkTime
+import models.{Employee, WorkTime, WorkTimeEntity}
 import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
@@ -50,11 +50,16 @@ trait WorkTimeComponent {
 
 class WorkTimeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
                             implicit val ec: ExecutionContext) extends WorkTimeComponent
+  with ProjectComponent with EmployeeComponent
   with HasDatabaseConfigProvider[JdbcProfile] {
 
   import profile.api._
 
   private lazy val worktimes = TableQuery[WorkTimeTable]
+
+  private lazy val projects = TableQuery[ProjectTable]
+
+  private lazy val employees = TableQuery[EmployeeTable]
 
   def createTable(): Unit = {
     db.run(
@@ -69,7 +74,9 @@ class WorkTimeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   }
 
   def get(proNo: String, empNo: Int, wDate: DateTime): Future[Option[WorkTime]] = {
+
     import dao.CustomColumnTypes._
+
     db.run(
       worktimes.filter(
         wt => wt.prono === proNo
@@ -80,7 +87,9 @@ class WorkTimeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   }
 
   def update(w: WorkTime): Future[Int] = {
+
     import dao.CustomColumnTypes._
+
     db.run(
       worktimes.filter(
         wt => wt.prono === w.ProNo
@@ -93,5 +102,36 @@ class WorkTimeDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     db.run(
       worktimes.delete
     )
+  }
+
+  def listByUid(uid: Int): Future[Seq[WorkTimeEntity]] = {
+    db.run(
+      (
+        worktimes.filter(_.empno === uid)
+          join projects on (_.prono === _.prono)
+        ).result
+    ).map {
+      ss =>
+        ss.map {
+          s =>
+            WorkTimeEntity(s._2.ProName, None, s._1)
+        }
+    }
+  }
+
+  def list: Future[Seq[WorkTimeEntity]] = {
+    db.run(
+      (
+        worktimes
+          join projects on (_.prono === _.prono)
+          joinLeft employees on (_._1.empno === _.empno)
+        ).result
+    ).map {
+      ss =>
+        ss.map {
+          s =>
+            WorkTimeEntity(s._1._2.ProName, s._2.getOrElse(Employee()).EmpName, s._1._1)
+        }
+    }
   }
 }

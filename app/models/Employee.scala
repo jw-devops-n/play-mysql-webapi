@@ -7,9 +7,9 @@ import play.api.libs.json.{Json, OFormat}
   * Created by TallSafe on 2018/5/10. 
   */
 case class Employee(
-                     var EmpNo: Int,
-                     var UserName: String,
-                     var PassWord: String,
+                     var EmpNo: Int = 0,
+                     var UserName: String = "",
+                     var PassWord: String = "",
                      var EmpName: Option[String] = None,
                      var HeadPortrait: Option[String] = None,
                      var Openid: Option[String] = None,
