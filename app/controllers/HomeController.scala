@@ -541,7 +541,7 @@ class HomeController @Inject()(
                     result.foreach {
                       r =>
                         r.CustomerName = Some(cs.find(_.Customer.getOrElse(Customer()).CustomerNo == r.CustomerNo).getOrElse(CustomerEntity()).Customer.getOrElse(Customer()).CustomerName)
-                        r.EmpName = es.find(_.EmpNo == r.EmpNo).getOrElse(Employee(0, "", "")).EmpName
+                        r.EmpName = es.find(_.EmpNo == r.EmpNo.getOrElse(0)).getOrElse(Employee()).EmpName
                         r.ProStatus = codeService.getDescription("project", "status", r.ProStatus)
                         r.ProType = codeService.getDescription("project", "type", r.ProType)
                     }
@@ -655,11 +655,10 @@ class HomeController @Inject()(
                       Ok(Json.toJson(ProStatus(Status = true, RowAffected = Some(n))))
                   } recover {
                     case ex: Exception ⇒
-                      Logger.info(ex.getMessage)
                       InternalServerError(Json.toJson(ProStatus(EMsg = Option(ex.toString))))
                   }
                 } else {
-                  Future(Ok("0"))
+                  Future(Ok(Json.toJson(ProStatus(EMsg = Some("当天该项目工时已上报！")))))
                 }
             } recoverWith {
               case ex: Exception ⇒
